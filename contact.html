@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us - SmartBuy{% endblock %}
+
+{% block content %}
+<div class="contact-container">
+    <div class="contact-header">
+        <h2>Get in Touch</h2>
+        <p>Have questions? We'd love to hear from you.</p>
+    </div>
+    
+    <div class="contact-grid">
+        <div class="contact-info glass-card">
+            <div class="info-item">
+                <i class="fa-solid fa-location-dot"></i>
+                <div>
+                    <h4>Our Location</h4>
+                    <p>123 Fashion Street, NY 10001</p>
+                </div>
+            </div>
+            <div class="info-item mt-3">
+                <i class="fa-solid fa-phone"></i>
+                <div>
+                    <h4>Phone Number</h4>
+                    <p>+1 (555) 123-4567</p>
+                </div>
+            </div>
+            <div class="info-item mt-3">
+                <i class="fa-solid fa-envelope"></i>
+                <div>
+                    <h4>Email Address</h4>
+                    <p>support@smartbuy.com</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="contact-form glass-card">
+            <h3>Send a Message</h3>
+            <form action="#" method="POST" onsubmit="alert('Message sent successfully!'); return false;">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" required class="form-control" placeholder="Your Name">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" required class="form-control" placeholder="Your Email">
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea rows="4" required class="form-control" placeholder="How can we help you?"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Send Message</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

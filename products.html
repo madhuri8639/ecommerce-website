@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Shop - SmartBuy{% endblock %}
+
+{% block content %}
+<div class="shop-container">
+    <div class="shop-header">
+        <h2>{% if current_category %}{{ current_category }} Collection{% else %}All Products{% endif %}</h2>
+        <p>Showing {{ products|length }} results</p>
+    </div>
+
+    <div class="product-grid">
+        {% if products %}
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                    <div class="product-overlay">
+                        <a href="{{ url_for('add_to_cart', product_id=product.id) }}" class="btn btn-primary">Add to Cart</a>
+                    </div>
+                </div>
+                <div class="product-info">
+                    <span class="product-category">{{ product.category }}</span>
+                    <h3 class="product-name">{{ product.name }}</h3>
+                    <div class="product-price">${{ "%.2f"|format(product.price) }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fa-solid fa-box-open"></i>
+                <h3>No products found</h3>
+                <p>Try adjusting your search or category filter.</p>
+                <a href="{{ url_for('products') }}" class="btn btn-primary">Clear Filters</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

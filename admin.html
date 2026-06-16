@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Panel - SmartBuy{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h2>Admin Dashboard</h2>
+        <p>Welcome back, {{ session.get('username') }}</p>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-grid">
+        <div class="stat-card glass-card">
+            <i class="fa-solid fa-users stat-icon"></i>
+            <div class="stat-info">
+                <h3>{{ stats.users }}</h3>
+                <p>Total Users</p>
+            </div>
+        </div>
+        <div class="stat-card glass-card">
+            <i class="fa-solid fa-box-open stat-icon"></i>
+            <div class="stat-info">
+                <h3>{{ stats.products }}</h3>
+                <p>Total Products</p>
+            </div>
+        </div>
+        <div class="stat-card glass-card">
+            <i class="fa-solid fa-cart-arrow-down stat-icon"></i>
+            <div class="stat-info">
+                <h3>{{ stats.orders }}</h3>
+                <p>Total Orders</p>
+            </div>
+        </div>
+        <div class="stat-card glass-card">
+            <i class="fa-solid fa-dollar-sign stat-icon"></i>
+            <div class="stat-info">
+                <h3>${{ "%.2f"|format(stats.sales) }}</h3>
+                <p>Total Sales</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-grid">
+        <!-- Add Product Form -->
+        <div class="admin-form glass-card">
+            <h3>Add New Product</h3>
+            <form action="{{ url_for('add_product') }}" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" name="name" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="3" class="form-control"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select name="category" class="form-control">
+                            {% for cat in categories %}
+                            <option value="{{ cat }}">{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Price ($)</label>
+                        <input type="number" step="0.01" name="price" required class="form-control">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Stock Quantity</label>
+                        <input type="number" name="stock" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Image URL (Optional)</label>
+                        <input type="text" name="image_url" class="form-control" placeholder="http://...">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Or Upload Image</label>
+                    <input type="file" name="image" class="form-control" accept="image/*">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Add Product</button>
+            </form>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="admin-chart glass-card" style="align-self: start;">
+            <h3>Sales Overview</h3>
+            <div style="position: relative; height: 300px; width: 100%; margin-top: 20px;">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products List -->
+    <div class="admin-table glass-card mt-4">
+        <h3>Manage Products</h3>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in products %}
+                    <tr>
+                        <td>{{ p.id }}</td>
+                        <td><img src="{{ p.image_url }}" alt="img" width="50" style="border-radius: 5px;"></td>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.category }}</td>
+                        <td>${{ "%.2f"|format(p.price) }}</td>
+                        <td>{{ p.stock }}</td>
+                        <td>
+                            <a href="{{ url_for('delete_product', product_id=p.id) }}" class="btn-remove" onclick="return confirm('Delete this product?')"><i class="fa-solid fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Orders List -->
+    <div class="admin-table glass-card mt-4">
+        <h3>Manage Orders</h3>
+        {% if orders %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer ID</th>
+                        <th>Customer Name</th>
+                        <th>Date</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in orders %}
+                    <tr>
+                        <td><a href="{{ url_for('view_invoice', order_id=o.id) }}" style="color: var(--primary-color); text-decoration: underline; font-weight: bold;">#{{ o.id }}</a></td>
+                        <td>{{ o.user_id }}</td>
+                        <td>{{ o.customer_name }}</td>
+                        <td>{{ o.created_at.strftime('%Y-%m-%d %H:%M') if o.created_at else 'N/A' }}</td>
+                        <td>${{ "%.2f"|format(o.total_amount) }}</td>
+                        <td><span class="status-badge status-{{ o.status|lower }}">{{ o.status }}</span></td>
+                        <td>
+                            {% if o.status == 'Pending' %}
+                            <a href="{{ url_for('update_order_status', order_id=o.id, status='Processing') }}" class="btn btn-sm btn-primary" style="padding: 5px 10px; font-size: 0.85rem;"><i class="fa-solid fa-check"></i> Accept</a>
+                            {% elif o.status == 'Processing' %}
+                            <a href="{{ url_for('update_order_status', order_id=o.id, status='Shipped') }}" class="btn btn-sm btn-outline" style="padding: 5px 10px; font-size: 0.85rem;"><i class="fa-solid fa-truck"></i> Ship</a>
+                            {% elif o.status == 'Shipped' %}
+                            <a href="{{ url_for('update_order_status', order_id=o.id, status='Delivered') }}" class="btn btn-sm btn-primary" style="padding: 5px 10px; font-size: 0.85rem; background-color: #10b981; border-color: #10b981; color: white;"><i class="fa-solid fa-box"></i> Deliver</a>
+                            {% else %}
+                            <span style="color: #10b981; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Completed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fa-solid fa-cart-shopping fa-2x"></i>
+            <p>No orders placed yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Sales Chart Initialization
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        const salesChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Monthly Sales ($)',
+                    data: [1200, 1900, 3000, 2500, 2200, 3500], // Mock Data
+                    backgroundColor: 'rgba(79, 70, 229, 0.6)',
+                    borderColor: 'rgba(79, 70, 229, 1)',
+                    borderWidth: 1,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
